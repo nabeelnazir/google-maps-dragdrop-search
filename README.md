@@ -40,6 +40,7 @@ $scope.dragEnd = function(event, map) {
 2. `let bounds = [[ theBounds.getSouthWest().lat(), theBounds.getSouthWest().lng()],[theBounds.getNorthEast().lat(), theBounds.getNorthEast().lng() ]]; ` This will fetch the actual bounds of the portion of the map which is visible to the user after the drag event ended on the Google map.
 
 3. `apartmentFactory.all($scope.q).then(function(data)` here is an `AngularJS` concept. This line of code is calling our backend API method namely `index` with a parameter of `bounds`. On backend we are using **Ruby on Rails** and a `geocoder gem`. On backend we have `Apartment` database table which has `latitude` & `longitude` columns. We are using `in_bounds` method of `geocoder gem` which will fetch all apartments with the matching bounds like this `apartments  = Apartment.in_bounds([bounds.first, bounds.second]).ids` 
+
 Simple! This is it.
 
 You can use this concept with any front end technology and with any backend technology. 
