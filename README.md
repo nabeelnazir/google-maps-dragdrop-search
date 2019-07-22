@@ -18,53 +18,25 @@ Following code is written in AngularJS, we have used [ng-map](https://ngmap.gith
     </marker>
 </ng-map>
 ```
-`ng-map` is a simplest way to show google map. Above code has `on-dragend="dragEnd(map)" ` which will help us to search apartments whenever the Google map drag event ended.
+Above `ng-map` is a simplest way to show google map. Above code has `on-dragend="dragEnd(map)" ` which will help us to search apartments whenever the Google map drag event ended.
 
+**Here is out `dragEnd` function:**
 
 ```
- $scope.dragEnd = function(event, map) {
-      if ($scope.map_search_allowed && map !== undefined){
-          loadSpinner();
-          let theBounds = map.getBounds();
-          let bounds = [[ theBounds.getSouthWest().lat(), theBounds.getSouthWest().lng()],[theBounds.getNorthEast().lat(), theBounds.getNorthEast().lng() ]];
-          apartmentFactory.all($scope.q).then(function(data) {
-              $scope.q.bounds = bounds;
-              $scope.apartments = data.apartments;
-              $scope.featured_apartments = data.featured_apartments;
-              $scope.apartment_count = data.apartment_count;
-              $scope.amenties = data.amenties_counts;
-              $scope.areas = data.area_counts;
-              $scope.properties = data.properties;
-              $scope.order = (data.sortOrder == null ? 'default' : data.sortOrder);
-              if ($scope.properties) {
-                  $scope.array = latLngArray();
-                  $scope.latlng = getLatLngCenter($scope.array);
-              }
-              $scope.marker_clicked = '';
-              $scope.property_clicked = '';
-              if ($scope.q.base_monthly_price_gteq !== undefined) { $scope.priceSlider.value = $scope.q.base_monthly_price_gteq; }
-              $scope.priceSlider.maxValue = data.max_price;
-              $scope.priceSlider.options.ceil = data.max_price;
-              if ($scope.q.property_id_eq) {
-                  $scope.property_listings_view = true;
-              }
-              unLoadSpinner();
-              if ($scope.apartments) {
-                  if ($scope.apartments[0].city_readable == "Barcelona") {
-                      return ngMeta.setTitle(`Student Apartments in ${$scope.apartments[0].city_readable}`);
-                  }else{
-                      return ngMeta.setTitle(`Student Housing in ${$scope.apartments[0].city_readable}`);
-                  }
-              }
-          });
-      }
-  };
+$scope.dragEnd = function(event, map) {
+    let theBounds = map.getBounds();
+    let bounds = [[ theBounds.getSouthWest().lat(), theBounds.getSouthWest().lng()],[theBounds.getNorthEast().lat(), theBounds.getNorthEast().lng() ]];
+    apartmentFactory.all($scope.q).then(function(data) {
+        $scope.q.bounds = bounds;
+        $scope.apartments = data.apartments;
+    });
+};
 ```
 
-Here is the breakdown of `dragEnd` method.
+**Lets break down the `dragEnd` method:**
 
-`let theBounds = map.getBounds();` This will fetch the bounds of the map.
+1. `let theBounds = map.getBounds();` This will fetch the bounds of the map.
 
-`let bounds = [[ theBounds.getSouthWest().lat(), theBounds.getSouthWest().lng()],[theBounds.getNorthEast().lat(), theBounds.getNorthEast().lng() ]]; ` This will fetch the actual bounds of the portion of the map which is visible to the user after the drag ended on the Google maps.
+2. `let bounds = [[ theBounds.getSouthWest().lat(), theBounds.getSouthWest().lng()],[theBounds.getNorthEast().lat(), theBounds.getNorthEast().lng() ]]; ` This will fetch the actual bounds of the portion of the map which is visible to the user after the drag event ended on the Google map.
 
-`apartmentFactory.all($scope.q).then(function(data)` here is an `AngularJS` concept. This line of code is calling our backend API `index` method with all  
+3. `apartmentFactory.all($scope.q).then(function(data)` here is an `AngularJS` concept. This line of code is calling our backend API method namely `index` with a parameter of `bounds`. On backend we are using **Ruby on Rails** and a `geocoder gem`. On backend we have `Apartment` database table which has `latitude` & `longitude` columns. We are using `in_bounds` method of `geocoder gem` which will fetch all apartments with the matching bounds like this `apartments  = Apartment.in_bounds([bounds.first, bounds.second]).ids` Simple! This is it.
